@@ -20,12 +20,12 @@ from tapis_cli.utils import serializable
 from tapis_cli import project_ini, templating
 
 __all__ = [
-    'OptionNotImplemented', 'AppVerboseLevel', 'JsonVerbose',
-    'ServiceIdentifier', 'UploadJsonFile', 'AgaveURI', 'RemoteFilePath',
-    'LocalFilePath', 'Username', 'InvalidIdentifier', 'OptionalLocalFilePath',
-    'InvalidValue', 'URL', 'TapisEntityUUID', 'OptionalTapisEntityUUID',
-    'UploadJSONTemplate', 'WorkingDirectory', 'WorkingDirectoryOpt',
-    'WorkingDirectoryArg', 'DownloadDirectoryArg', 'DockerPy'
+    'OptionNotImplemented', 'AppVerboseLevel', 'ActorVerboseLevel',
+    'JsonVerbose','ServiceIdentifier', 'UploadJsonFile', 'AgaveURI',
+    'RemoteFilePath','LocalFilePath', 'Username', 'InvalidIdentifier',
+    'OptionalLocalFilePath','InvalidValue', 'URL', 'TapisEntityUUID',
+    'OptionalTapisEntityUUID','UploadJSONTemplate', 'WorkingDirectory',
+    'WorkingDirectoryOpt','WorkingDirectoryArg', 'DownloadDirectoryArg', 'DockerPy'
 ]
 
 
@@ -90,6 +90,30 @@ class AppVerboseLevel(ParserExtender):
         vlevel = 1
         try:
             vlevel = self.app_args.verbose_level
+        except Exception:
+            pass
+        return vlevel
+
+class ActorVerboseLevel(ParserExtender):
+    """Configures a Command to access the parent cliff Actors's verbosity level
+
+    The calling Actors's verbose_level is made available via method
+    actor_verbose_level(). In addition, two properties 'VERBOSITY' and
+    'EXTRA_VERBOSITY' are defined. These are intended to be values defined
+    by the `Verbosity` module. 'VERBOSITY' is the default field-display
+    verbosity for the Command, while `EXTRA_VERBOSITY` is the verbosity level
+    when a user or process specifies that additional verbosity is needed.
+    """
+    VERBOSITY = None
+    EXTRA_VERBOSITY = VERBOSITY
+
+    @property
+    def actor_verbose_level(self):
+        """Exposes the actor-scoped verbosity level as a formatter property
+        """
+        vlevel = 1
+        try:
+            vlevel = self.actor_args.verbose_level
         except Exception:
             pass
         return vlevel
