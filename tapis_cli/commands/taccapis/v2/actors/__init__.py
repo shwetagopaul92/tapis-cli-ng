@@ -4,8 +4,13 @@
 API_NAME = 'actors'
 SERVICE_VERSION = 'v2'
 
-from .models import Actor
 from .list import ActorsList
 from .show import ActorsShow
 from .delete import ActorsDelete
 from .pems_list import ActorsPemsList
+from .pems_grant import ActorsPemsGrant
+from .pems_revoke import ActorsPemsRevoke
+from .pems_show import ActorsPemsShow
+from .workers_list import ActorsWorkersList
+from .workers_create import ActorsWorkersCreate
+from .execs_show import ActorsExecsShow

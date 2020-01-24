@@ -1,29 +1,33 @@
 from tapis_cli.display import Verbosity
+from tapis_cli.clients.services.mixins import Username
 from .mixins import ActorIdentifier
 from tapis_cli.commands.taccapis.model import AbacoPermission
 
 from . import API_NAME, SERVICE_VERSION
 from .formatters import ActorsFormatMany
 
-__all__ = ['ActorsPemsList']
+__all__ = ['ActorsPemsShow']
 
 
-class ActorsPemsList(ActorsFormatMany, ActorIdentifier):
-    """Show Permissions on an Actor
+class ActorsPemsShow(ActorsFormatMany, ActorIdentifier, Username):
+    """Show Permissions on an Actor for specific User
     """
     VERBOSITY = Verbosity.BRIEF
     EXTRA_VERBOSITY = Verbosity.RECORD
 
     def get_parser(self, prog_name):
-        parser = super(ActorsPemsList, self).get_parser(prog_name)
+        parser = super(ActorsPemsShow, self).get_parser(prog_name)
         parser = ActorIdentifier.extend_parser(self, parser)
+        parser = Username.extend_parser(self, parser)
         return parser
 
     def take_action(self, parsed_args):
         parsed_args = self.preprocess_args(parsed_args)
         actor_id = ActorIdentifier.get_identifier(self, parsed_args)
+        API_PATH = '{0}/permissions/{1}'.format(actor_id, parsed_args.username)
+        self.requests_client.setup(API_NAME, SERVICE_VERSION, API_PATH)
         headers = self.render_headers(AbacoPermission, parsed_args)
-        results = self.tapis_client.actors.getPermissions(actorId=actor_id)
+        results = self.requests_client.get_data(params=self.post_payload)
 
         # TODO - Account for the wierd behavior where querying ANY username
         # will return +rwx even if the username is fictitious. A client-side

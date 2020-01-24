@@ -1,37 +1,45 @@
 from tapis_cli.display import Verbosity
+from tapis_cli.clients.services.mixins import Username
 from .mixins import ActorIdentifier
 from tapis_cli.commands.taccapis.model import AbacoPermission
 
 from . import API_NAME, SERVICE_VERSION
 from .formatters import ActorsFormatMany
 
-__all__ = ['ActorsPemsList']
+__all__ = ['ActorsPemsGrant']
 
 
-class ActorsPemsList(ActorsFormatMany, ActorIdentifier):
-    """Show Permissions on an Actor
+class ActorsPemsGrant(ActorsFormatMany, ActorIdentifier, Username):
+    """Grant Permissions on an Actor to a User
     """
     VERBOSITY = Verbosity.BRIEF
     EXTRA_VERBOSITY = Verbosity.RECORD
 
     def get_parser(self, prog_name):
-        parser = super(ActorsPemsList, self).get_parser(prog_name)
+        parser = super(ActorsPemsGrant, self).get_parser(prog_name)
         parser = ActorIdentifier.extend_parser(self, parser)
+        parser = Username.extend_parser(self, parser)
+        parser.add_argument('permission',
+                            metavar='<permission>',
+                            choices=AbacoPermission.NAMES,
+                            help='Permission string ({0})'.format('| '.join(
+                                AbacoPermission.NAMES)))
         return parser
 
     def take_action(self, parsed_args):
         parsed_args = self.preprocess_args(parsed_args)
         actor_id = ActorIdentifier.get_identifier(self, parsed_args)
         headers = self.render_headers(AbacoPermission, parsed_args)
+        permission = parsed_args.permission
+        body = {
+            'user': parsed_args.username,
+            'level': permission.upper()
+        }
+        grant_result = self.tapis_client.actors.updatePermissions(
+            actorId=actor_id, body=body)
+        # check if the grant_result is enough to print results
+        
         results = self.tapis_client.actors.getPermissions(actorId=actor_id)
-
-        # TODO - Account for the wierd behavior where querying ANY username
-        # will return +rwx even if the username is fictitious. A client-side
-        # (partial) would be to list the pems, extract the usernames, and
-        # validate presence of <username> among the. Another would be to
-        # simply list all pems and extract the matching row by <username>
-        # for actors this will return a dictionary with key, values:
-        # {"username":"permission"} , so we need to parse this differently
 
         records = []
         for key in results:
@@ -44,9 +52,9 @@ class ActorsPemsList(ActorsFormatMany, ActorIdentifier):
                 record.append(permission)
             else:
                 for key in headers:
-                    val = self.render_value(results.get(key, None))
+                    val = self.render_value(rec.get(key, None))
                     record.append(val)
             if record not in records:
-                records.append(record)
+                    records.append(record)
 
         return(tuple(headers), tuple(records))

@@ -1,4 +1,4 @@
-"""Data model and functions for Tapis actors
+"""Data model and functions for Tapis apps
 """
 from tapis_cli.commands.taccapis.v2 import SERVICE_VERSION
 from tapis_cli.commands.taccapis import TapisModel
